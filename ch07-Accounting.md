@@ -2,15 +2,15 @@
 
 ### Journal(분개장)
 
-![[https://doitevery.com/entry/분개장과-총계정원장](https://doitevery.com/entry/%EB%B6%84%EA%B0%9C%EC%9E%A5%EA%B3%BC-%EC%B4%9D%EA%B3%84%EC%A0%95%EC%9B%90%EC%9E%A5)](attachment:082398e0-40aa-4b63-a939-d177fd7afe58:image.png)
+![](assets/ch07-01.webp)
 
-[https://doitevery.com/entry/분개장과-총계정원장](https://doitevery.com/entry/%EB%B6%84%EA%B0%9C%EC%9E%A5%EA%B3%BC-%EC%B4%9D%EA%B3%84%EC%A0%95%EC%9B%90%EC%9E%A5)
+> [https://doitevery.com/entry/분개장과-총계정원장](https://doitevery.com/entry/분개장과-총계정원장)
 
 ### General Ledger(총계정원장)
 
-![[https://doitevery.com/entry/분개장과-총계정원장](https://doitevery.com/entry/%EB%B6%84%EA%B0%9C%EC%9E%A5%EA%B3%BC-%EC%B4%9D%EA%B3%84%EC%A0%95%EC%9B%90%EC%9E%A5)](attachment:65736abf-c490-43d8-8123-281df76fc43d:image.png)
+![](assets/ch07-02.webp)
 
-[https://doitevery.com/entry/분개장과-총계정원장](https://doitevery.com/entry/%EB%B6%84%EA%B0%9C%EC%9E%A5%EA%B3%BC-%EC%B4%9D%EA%B3%84%EC%A0%95%EC%9B%90%EC%9E%A5)
+> [https://doitevery.com/entry/분개장과-총계정원장](https://doitevery.com/entry/분개장과-총계정원장)
 
 ---
 
@@ -39,39 +39,38 @@
 
 with
 current_month as (
-		select
-				cast(format_date('%Y%m', date) as int64) as month,
-				ledger,
-				account,
-				organization,
-				-- balance
-				sum(case when debit_credit = 'debit' then amount end) as debit,
-				sum(case when debit_credit = 'credit' then amount end) as credit,
-				sum(case when debit_credit = 'debit' then amount end) - sum(case when debit_credit = 'credit' then amount end) as net_change,
-		from
-				fact_accounting
-		where true
-				and date_trunc(date, month) = '2025-02-01'
-		group by
-				all
+    select
+        cast(format_date('%Y%m', date) as int64) as month,
+        ledger,
+        account,
+        organization,
+        sum(case when debit_credit = 'debit' then amount end) as debit,
+        sum(case when debit_credit = 'credit' then amount end) as credit,
+        sum(case when debit_credit = 'debit' then amount end) - sum(case when debit_credit = 'credit' then amount end) as net_change,
+    from
+        fact_accounting
+    where true
+        and date_trunc(date, month) = '2025-02-01'
+    group by
+        all
 )
 
 select
-		month,
-		coalesce(prev.ledger, curr.ledger) as ledger,
-		coalesce(prev.account, curr.account) as account,
-		coalesce(prev.organization, curr.organization) as organization,
-		coalesce(prev.balance, 0) + curr.net_change as balance,
-		curr.debit,
-		curr.credit,
-		curr.net_change,
+    month,
+    coalesce(prev.ledger, curr.ledger) as ledger,
+    coalesce(prev.account, curr.account) as account,
+    coalesce(prev.organization, curr.organization) as organization,
+    coalesce(prev.balance, 0) + curr.net_change as balance,
+    curr.debit,
+    curr.credit,
+    curr.net_change,
 from
-		previous_month as prev
+    previous_month as prev
 where true
-		and prev.month = 202501
+    and prev.month = 202501
 full outer join
-		current_month as curr
-		on prev.ledger = curr.ledger and prev.account = curr.account and prev.organization = curr.organization
+    current_month as curr
+    on prev.ledger = curr.ledger and prev.account = curr.account and prev.organization = curr.organization
 ```
 
 **🔹 비즈니스 프로세스**: 총계정원장 자체가 비즈니스 프로세스
@@ -90,9 +89,9 @@ full outer join
 
 ☀️ **Dimension** 역할을 한다! (특별할 게 없음 🤷🏻‍♂️)
 
-![https://www.waveapps.com/blog/chart-of-accounts](attachment:109458c9-cc44-4783-a64d-7885b96a2fe7:image.png)
+![](assets/ch07-03.webp)
 
-https://www.waveapps.com/blog/chart-of-accounts
+> [https://www.waveapps.com/blog/chart-of-accounts](https://www.waveapps.com/blog/chart-of-accounts)
 
 ### 📌 주의할 점
 
@@ -123,12 +122,12 @@ https://www.waveapps.com/blog/chart-of-accounts
 
 ```sql
 select
-		date,
-		sum(new_users) over (order by date rows between unbounded preceding and current row) as cum_users,
-		sum(revenue) over (order by date rows between unbounded preceding and current row) as cum_revenue,
-		sum(transactions) over (order by date rows between unbounded preceding and current row) as cum_transactions, 
+    date,
+    sum(new_users) over (order by date rows between unbounded preceding and current row) as cum_users,
+    sum(revenue) over (order by date rows between unbounded preceding and current row) as cum_revenue,
+    sum(transactions) over (order by date rows between unbounded preceding and current row) as cum_transactions, 
 from
-		daily_snapshot__key_metrics
+    daily_snapshot__key_metrics
 ```
 
 **📍 각 항목은 철저히 Unit Transaction으로 기록:** 하나의 항목이 **여러 총계정원장 계정**에 영향을 미치는 경우 → 여러 행으로 나누어 표현
@@ -163,26 +162,26 @@ from
 ```sql
 -- 구매자 수: Unit 단위까지 볼 필요 없으므로, 쿼리 비용 절약 가능
 select
-		date,
-		count(distinct user_id) as users_cnt,
+    date,
+    count(distinct user_id) as users_cnt,
 from
-		fact__transactions
+    fact__transactions
 group by
-		1
+    1
 order by
-		1
+    1
 ;
 
 -- 제품별 판매량: Unit 단위까지 봐야 함
 select
-		item_id,
-		sum(total_price) as total_revenue,
+    item_id,
+    sum(total_price) as total_revenue,
 from
-		fact__unit_transactions
+    fact__unit_transactions
 group by
-		1
+    1
 order by
-		1
+    1
 ;
 ```
 
