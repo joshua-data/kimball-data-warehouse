@@ -105,7 +105,7 @@ cash_revenue AS (
     {{ ref('fact__transactions') }}
   WHERE TRUE
     {% if is_incremental() %}
-			AND (SELECT MAX(date) FROM {{ this }}) < date
+    AND (SELECT MAX(date) FROM {{ this }}) < date
     {% endif %}
   GROUP BY
     date
@@ -115,16 +115,16 @@ cash_revenue AS (
 unearned_revenue_raw AS (
   SELECT
     DATE_ADD(start_date, INTERVAL days_offset DAY) AS date,
-	  DATE_DIFF(end_date, start_date, DAY) + 1 AS total_days,
+    DATE_DIFF(end_date, start_date, DAY) + 1 AS total_days,
     payment_usd
   FROM
     {{ ref('fact__transactions') }},
     UNNEST (
-	    GENERATE_ARRAY(0, DATE_DIFF(end_date, start_date, DAY))
+      GENERATE_ARRAY(0, DATE_DIFF(end_date, start_date, DAY))
     ) AS days_offset
   WHERE TRUE
     {% if is_incremental() %}
-	    AND (SELECT max(date) FROM {{ this }}) < DATE_ADD(start_date, INTERVAL days_offset DAY)
+    AND (SELECT max(date) FROM {{ this }}) < DATE_ADD(start_date, INTERVAL days_offset DAY)
     {% endif %}
 ),
 
@@ -147,7 +147,7 @@ FROM
   cash_revenue c
 FULL OUTER JOIN
   unearned_revenue i
-USING (date)
+  USING (date)
 ```
 
 ---
